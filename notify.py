@@ -81,6 +81,8 @@ if __name__ == '__main__':
         )
         sys.exit(1)
 
+    print('apikey: ', api_key[:10], 'secret: ', api_secret[:10])
+
     api = NotifyApi(api_key, api_secret)
     response = api.send_message(message)
     print(f'Status: {response.status_code}')
