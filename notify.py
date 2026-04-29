@@ -76,12 +76,8 @@ if __name__ == '__main__':
     message = os.environ.get('MESSAGE')
 
     if not all([api_key, api_secret, message]):
-        print(
-            'Error: API_KEY, API_SECRET, and MESSAGE env vars are required'
-        )
+        print('Error: API_KEY, API_SECRET, and MESSAGE env vars are required')
         sys.exit(1)
-
-    print('apikey: ', api_key[:10], 'secret: ', api_secret[:10])
 
     api = NotifyApi(api_key, api_secret)
     response = api.send_message(message)
