@@ -15,3 +15,7 @@ inputs:
 runs:
   using: 'docker'
   image: 'Dockerfile'
+  env:
+    INPUT_API_KEY: ${{ inputs.api_key }}
+    INPUT_API_SECRET: ${{ inputs.api_secret }}
+    INPUT_MESSAGE: ${{ inputs.message }}
