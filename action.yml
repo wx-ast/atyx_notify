@@ -1,0 +1,17 @@
+name: 'atyx_notify'
+description: 'Отправка уведомлений через atyx.ru notify API'
+
+inputs:
+  api_key:
+    description: 'ATYX API Key'
+    required: true
+  api_secret:
+    description: 'ATYX API Secret'
+    required: true
+  message:
+    description: 'Сообщение для отправки'
+    required: true
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
