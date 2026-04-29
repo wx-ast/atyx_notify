@@ -71,13 +71,13 @@ class NotifyApi:
 
 
 if __name__ == '__main__':
-    api_key = os.environ.get('INPUT_API_KEY')
-    api_secret = os.environ.get('INPUT_API_SECRET')
-    message = os.environ.get('INPUT_MESSAGE')
+    api_key = os.environ.get('API_KEY')
+    api_secret = os.environ.get('API_SECRET')
+    message = os.environ.get('MESSAGE')
 
     if not all([api_key, api_secret, message]):
         print(
-            'Error: INPUT_API_KEY, INPUT_API_SECRET, and INPUT_MESSAGE env vars are required'
+            'Error: API_KEY, API_SECRET, and MESSAGE env vars are required'
         )
         sys.exit(1)
 
