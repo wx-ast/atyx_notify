@@ -12,7 +12,7 @@ class NotifyApi:
     def __init__(self, apikey: str, apisecret: str):
         self.apikey = apikey
         self.apisecret = apisecret
-        self.baseurl = 'https://atyx.ru/notify/'
+        self.baseurl = 'https://notify.atyx.ru:8443/notify/'
 
         self.session = requests.Session()
         self.session.headers.update(
@@ -53,6 +53,10 @@ class NotifyApi:
         return response
 
     def _get_signature(self, timestamp: int, uri: str, method: str, contenthash: str):
+        parsed = urlparse(uri)
+        netloc = parsed.hostname
+        uri = f'{parsed.scheme}://{netloc}{parsed.path}'
+        
         presign = '|'.join((str(timestamp), uri, method, contenthash))
         hash_object = hmac.new(
             self.apisecret.encode('utf-8'),
