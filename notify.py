@@ -13,13 +13,12 @@ class NotifyApi:
     def __init__(self, apikey: str, apisecret: str):
         self.apikey = apikey
         self.apisecret = apisecret
-        self.baseurl = 'https://notify.atyx.ru:8443/notify/'
+        self.baseurl = os.environ.get('NOTIFY_BASEURL') or 'https://notify.atyx.ru/notify/'
 
         self.session = requests.Session()
         self.session.headers.update(
             {
                 'Content-Type': 'application/json;charset=utf-8',
-                'X-ATYX-APIKEY': self.apikey,
             }
         )
 
@@ -45,19 +44,17 @@ class NotifyApi:
 
         contenthash = self._get_contenthash(data)
 
-        self.session.headers['X-ATYX-TIMESTAMP'] = str(timestamp)
-        self.session.headers['X-ATYX-SIGNATURE'] = self._get_signature(
-            timestamp, uri, method, contenthash
-        )
+        signature = self._get_signature(timestamp, uri, method, contenthash)
+        self.session.headers['X-ATYX-TOKEN'] = f'{self.apikey}:{timestamp}:{signature}'
 
-        response = self.session.post(uri, json=data)
+        response = self.session.post(uri, json=data, timeout=(5, 20), allow_redirects=False)
         return response
 
     def _get_signature(self, timestamp: int, uri: str, method: str, contenthash: str):
         parsed = urlparse(uri)
         netloc = parsed.hostname
         uri = f'{parsed.scheme}://{netloc}{parsed.path}'
-        
+
         presign = '|'.join((str(timestamp), uri, method, contenthash))
         hash_object = hmac.new(
             self.apisecret.encode('utf-8'),
@@ -75,16 +72,35 @@ class NotifyApi:
         return hash_object.hexdigest()
 
 
-if __name__ == '__main__':
+def main():
     api_key = os.environ.get('API_KEY')
     api_secret = os.environ.get('API_SECRET')
     message = os.environ.get('MESSAGE')
 
     if not all([api_key, api_secret, message]):
         print('Error: API_KEY, API_SECRET, and MESSAGE env vars are required')
-        sys.exit(1)
+        return 1
 
     api = NotifyApi(api_key, api_secret)
-    response = api.send_message(message)
-    print(f'Status: {response.status_code}')
-    print(response.text)
+    try:
+        response = api.send_message(message)
+        print(f'Status: {response.status_code}')
+        if response.status_code != 200:
+            print('Error: Notify API returned an unsuccessful HTTP status')
+            return 1
+        result = response.json()
+    except (requests.RequestException, ValueError):
+        print('Error: Notify request failed or response is not JSON')
+        return 1
+    finally:
+        api.session.close()
+
+    if not isinstance(result, dict) or result.get('status') != 'ok':
+        print('Error: Notify API did not confirm message delivery')
+        return 1
+    print('Notification sent')
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
